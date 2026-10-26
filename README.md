@@ -19,11 +19,33 @@ con el **promedio** entre dos personas.
 ## Levantar el proyecto
 
 ```bash
-cd Proyectos/simpsons-episode-map
+cd rutas/a/simpsons-episode-map
 docker compose up -d --build
 ```
 
 - Interfaz web: **http://localhost:8000**
+
+## Usarlo desde Docker Desktop
+
+La primera vez ejecutá el comando de arriba (o `docker compose up -d` si ya
+construiste la imagen). Después queda como un stack fijo:
+
+- En **Docker Desktop → Containers** aparece el stack `simpsons-episode-map`
+  con el contenedor del mismo nombre y un botón ▶ / ⏹.
+- Dale ▶ y esperá a que el estado pase a **running (healthy)**. El *healthcheck*
+  consulta `/api/persons`, así que si dice `healthy` la app ya responde.
+- Abrí **http://localhost:8000** en el navegador.
+- `restart: unless-stopped` hace que vuelva a arrancar solo cuando prendés
+  Docker Desktop. El botón ⏹ sí lo deja parado hasta que le des ▶ de nuevo.
+
+Comandos útiles:
+
+```bash
+docker compose ps          # estado y salud
+docker compose logs -f     # logs en vivo
+docker compose down        # parar y borrar el contenedor (los datos quedan)
+docker compose up -d       # volver a levantar
+```
 
 ## Desde otra PC o el celular (misma red WiFi)
 
@@ -40,6 +62,26 @@ Ejemplo: `http://192.168.1.35:8000`
 - Cada episodio tiene título en español latino, título original y una sinopsis breve.
 - La app migra automáticamente títulos y sinopsis al iniciar sin borrar personas,
   puntuaciones ni referencias existentes.
+- El volumen real se llama `simpsons-episode-map_simpsons_data`. Como el
+  `docker-compose.yml` fija `name: simpsons-episode-map`, ese nombre no cambia
+  aunque muevas o renombres la carpeta del proyecto (si no, Docker crearía un
+  volumen nuevo y vacío).
+
+### Respaldo y restauración
+
+Tus puntuaciones viven en un volumen, no en un archivo del repo. Para respaldarlas:
+
+```bash
+docker run --rm -v simpsons-episode-map_simpsons_data:/data -v "$PWD":/backup \
+  alpine tar czf /backup/simpsons-backup.tar.gz -C /data .
+```
+
+Para restaurar, con el stack parado (`docker compose down`):
+
+```bash
+docker run --rm -v simpsons-episode-map_simpsons_data:/data -v "$PWD":/backup \
+  alpine tar xzf /backup/simpsons-backup.tar.gz -C /data
+```
 
 ## Contenido y atribución
 
@@ -69,9 +111,9 @@ Ejemplo: `http://192.168.1.35:8000`
 ## Desarrollo local (sin Docker)
 
 ```bash
-cd Proyectos/simpsons-episode-map
+cd rutas/a/simpsons-episode-map
 python3 -m venv venv
 source venv/bin/activate  # o venv\Scripts\activate en Windows
 pip install -r backend/requirements.txt
-DB_PATH=/tmp/opencode/simpsons.db flask --app backend.app run --host 0.0.0.0 --port 8000
+DB_PATH=/tmp/simpsons.db flask --app backend.app run --host 0.0.0.0 --port 8000
 ```
