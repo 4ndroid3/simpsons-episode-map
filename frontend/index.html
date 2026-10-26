@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍩 Los Simpson: Mapa de Episodios</title>
+  <link rel="stylesheet" href="/static/css/style.css?v=7">
+</head>
+<body>
+  <header>
+    <h1>🍩 Los Simpson</h1>
+    <h2>Mapa de Episodios</h2>
+    <p class="subtitle">Califica cada episodio y deja tus referencias del mejor del capítulo</p>
+  </header>
+
+  <section id="persons-section">
+    <h3>Personas</h3>
+    <div class="person-form">
+      <input id="new-person-name" type="text" placeholder="Escribe un nombre y pulsa Añadir">
+      <button id="add-person-btn">Añadir</button>
+    </div>
+    <div id="person-chips" class="chips"></div>
+  </section>
+
+  <nav class="tabs">
+    <button id="tab-map" class="tab active" data-mode="map">🗺️ Mapa</button>
+    <button id="tab-average" class="tab" data-mode="average">➗ Promedio</button>
+  </nav>
+
+  <main>
+    <section id="view-map">
+      <div class="controls">
+        <label for="person-select">Persona:</label>
+        <select id="person-select"></select>
+      </div>
+    </section>
+
+    <section id="view-average" class="hidden">
+      <div class="controls">
+        <div class="controls-pair">
+          <label for="person-a">Persona A:</label>
+          <select id="person-a"></select>
+        </div>
+        <div class="controls-pair">
+          <label for="person-b">Persona B:</label>
+          <select id="person-b"></select>
+        </div>
+      </div>
+    </section>
+
+    <div class="heatmap-wrap">
+      <table id="heatmap" class="heatmap"></table>
+    </div>
+    <div class="heatmap-legend">
+      <span>1</span>
+      <div class="legend-gradient" aria-hidden="true"></div>
+      <span>10</span>
+      <span class="legend-hint">peor &larr; nota &rarr; mejor</span>
+    </div>
+  </main>
+
+  <div id="modal" class="hidden">
+    <div class="modal-card">
+      <button id="modal-close" class="modal-close" title="Cerrar">✕</button>
+      <h3 id="modal-title">Temporada 1 · Episodio 1</h3>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js?v=7"></script>
+</body>
+</html>

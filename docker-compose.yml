@@ -1,0 +1,12 @@
+services:
+  simpsons:
+    build: .
+    container_name: simpsons-episode-map
+    ports:
+      - "8000:8000"
+    volumes:
+      - simpsons_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  simpsons_data:
