@@ -23,7 +23,12 @@ cd rutas/a/simpsons-episode-map
 docker compose up -d --build
 ```
 
-- Interfaz web: **http://localhost:8000**
+- Interfaz web: **http://localhost:5500**
+
+> El 5500 es el puerto **del host**. Adentro del contenedor la app sigue
+> escuchando en el 8000 (`gunicorn`, `EXPOSE 8000`); Docker solo lo publica
+> en 5500 según `ports: "5500:8000"`. Para cambiarlo, editá el número de la
+> izquierda y volvé a levantar con `docker compose up -d`.
 
 ## Usarlo desde Docker Desktop
 
@@ -34,7 +39,7 @@ construiste la imagen). Después queda como un stack fijo:
   con el contenedor del mismo nombre y un botón ▶ / ⏹.
 - Dale ▶ y esperá a que el estado pase a **running (healthy)**. El *healthcheck*
   consulta `/api/persons`, así que si dice `healthy` la app ya responde.
-- Abrí **http://localhost:8000** en el navegador.
+- Abrí **http://localhost:5500** en el navegador.
 - `restart: unless-stopped` hace que vuelva a arrancar solo cuando prendés
   Docker Desktop. El botón ⏹ sí lo deja parado hasta que le des ▶ de nuevo.
 
@@ -51,9 +56,9 @@ docker compose up -d       # volver a levantar
 
 1. Con el PC encendido y Docker levantado (`docker compose up -d`).
 2. Obtén la IP local del PC (Windows: `ipconfig` → IPv4; Linux/Mac: `ifconfig` o `ip addr`).
-3. En el celular o la otra PC, abre: `http://<IP-LAN-del-PC>:8000`
+3. En el celular o la otra PC, abre: `http://<IP-LAN-del-PC>:5500`
 
-Ejemplo: `http://192.168.1.35:8000`
+Ejemplo: `http://192.168.1.35:5500`
 
 ## Datos
 
@@ -117,5 +122,5 @@ cd rutas/a/simpsons-episode-map
 python3 -m venv venv
 source venv/bin/activate  # o venv\Scripts\activate en Windows
 pip install -r backend/requirements.txt
-DB_PATH=/tmp/simpsons.db flask --app backend.app run --host 0.0.0.0 --port 8000
+DB_PATH=/tmp/simpsons.db flask --app backend.app run --host 0.0.0.0 --port 5500
 ```
