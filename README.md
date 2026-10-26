@@ -7,7 +7,7 @@ con el **promedio** entre dos personas.
 ## Qué hace
 
 - **Mapa por persona**: heatmap con temporadas en columnas y episodios en filas. Cada casilla
-  se abre en un modal para puntuar (1–10) y escribir las referencias del mejor momento de esa
+  se abre en un modal para puntuar (1–10, admite decimales tipo 9.5) y escribir las referencias del mejor momento de esa
   persona.
 - **Mapa de promedios**: elige a las dos personas y ves el promedio de sus puntuaciones por
   episodio. Al abrir un episodio aparecen las referencias de ambas personas.
@@ -62,6 +62,8 @@ Ejemplo: `http://192.168.1.35:8000`
 - Cada episodio tiene título en español latino, título original y una sinopsis breve.
 - La app migra automáticamente títulos y sinopsis al iniciar sin borrar personas,
   puntuaciones ni referencias existentes.
+- Las puntuaciones se guardan como número real: la columna pasa de entero a
+  decimal sola al arrancar, y las notas que ya tenías se conservan igual.
 - El volumen real se llama `simpsons-episode-map_simpsons_data`. Como el
   `docker-compose.yml` fija `name: simpsons-episode-map`, ese nombre no cambia
   aunque muevas o renombres la carpeta del proyecto (si no, Docker crearía un
@@ -104,7 +106,7 @@ docker run --rm -v simpsons-episode-map_simpsons_data:/data -v "$PWD":/backup \
 | GET | `/api/episodes/all?person=<id>` | Todos los episodios con la puntuación de una persona |
 | POST | `/api/episodes` | Crear/editar episodio `{ "season": n, "number": n, "title": "...", "references": "..." }` |
 | POST | `/api/references` | Referencia de una persona `{ "person_id": n, "season": n, "number": n, "references": "..." }` |
-| POST | `/api/scores` | Puntuación `{ "person_id": n, "season": n, "episode_number": n, "value": n }` (1–10) |
+| POST | `/api/scores` | Puntuación `{ "person_id": n, "season": n, "episode_number": n, "value": n }` (1–10, admite decimales; se redondea a 1 decimal) |
 | DELETE | `/api/scores?person_id=&season=&episode_number=` | Borrar puntuación |
 | GET | `/api/averages?person_a=<id>&person_b=<id>` | Promedios de todos los episodios (con referencias de ambas personas) |
 

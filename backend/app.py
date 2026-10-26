@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS episodes (
 CREATE TABLE IF NOT EXISTS scores (
     person_id INTEGER NOT NULL,
     episode_id INTEGER NOT NULL,
-    value INTEGER NOT NULL CHECK (value BETWEEN 1 AND 10),
+    value REAL NOT NULL CHECK (value BETWEEN 1 AND 10),
     PRIMARY KEY (person_id, episode_id),
     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE,
     FOREIGN KEY (episode_id) REFERENCES episodes(id) ON DELETE CASCADE
@@ -57,11 +57,43 @@ def init_db():
     db = get_db()
     db.executescript(SCHEMA)
     db.commit()
+    migrate_scores_to_real(db)
     # Idempotente: agrega solo los episodios de la semilla que falten.
     # Al actualizar la app se suman temporadas nuevas sin borrar personas,
     # puntuaciones ni referencias existentes.
     seed_episodes(db)
     db.close()
+
+
+def migrate_scores_to_real(db):
+    """Bases viejas declaraban scores.value como INTEGER.
+
+    SQLite igual guarda decimales ahí (la afinidad INTEGER no trunca 9.5),
+    pero el esquema anterior prometía enteros. Se reconstruye la tabla solo
+    si la columna no es REAL todavía, para que el tipo declarado coincida con
+    lo que la app acepta ahora.
+    """
+    types = {row[1]: (row[2] or "").upper() for row in db.execute("PRAGMA table_info(scores)")}
+    if types.get("value") == "REAL":
+        return
+    db.executescript(
+        """
+        DROP TABLE IF EXISTS scores_migrated;
+        CREATE TABLE scores_migrated (
+            person_id INTEGER NOT NULL,
+            episode_id INTEGER NOT NULL,
+            value REAL NOT NULL CHECK (value BETWEEN 1 AND 10),
+            PRIMARY KEY (person_id, episode_id),
+            FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE,
+            FOREIGN KEY (episode_id) REFERENCES episodes(id) ON DELETE CASCADE
+        );
+        INSERT INTO scores_migrated (person_id, episode_id, value)
+            SELECT person_id, episode_id, value FROM scores;
+        DROP TABLE scores;
+        ALTER TABLE scores_migrated RENAME TO scores;
+        """
+    )
+    db.commit()
 
 
 def seed_episodes(db):
@@ -260,13 +292,18 @@ def api_reference_save():
 @app.post("/api/scores")
 def api_score_save():
     body = request.get_json(silent=True) or {}
-    pid = int(body.get("person_id") or 0)
-    season = int(body.get("season") or 0)
-    number = int(body.get("episode_number") or 0)
-    value = body.get("value")
-    if value is None:
+    pid = _get_pid(body.get("person_id"))
+    season = _get_pid(body.get("season"))
+    number = _get_pid(body.get("episode_number"))
+    raw = body.get("value")
+    if raw is None or raw == "":
         return jsonify({"error": "El valor es obligatorio"}), 400
-    value = int(value)
+    try:
+        # Se aceptan decimales (9.5). Se redondea a un decimal para que
+        # el heatmap muestre siempre el mismo valor que quedó guardado.
+        value = round(float(raw), 1)
+    except (TypeError, ValueError):
+        return jsonify({"error": "La puntuacion debe ser un numero"}), 400
     if not 1 <= value <= 10:
         return jsonify({"error": "La puntuacion debe estar entre 1 y 10"}), 400
     db = get_db()

@@ -306,12 +306,22 @@ function openModal(ep, mode) {
     input.type = "number";
     input.min = "1";
     input.max = "10";
+    input.step = "0.1";
+    input.inputMode = "decimal";
+    input.placeholder = "1–10";
     input.id = "score-" + person.id;
     input.value = ep.scores && ep.scores[person.id] != null ? ep.scores[person.id] : "";
     row.appendChild(label);
     row.appendChild(input);
     scoreWrap.appendChild(row);
   });
+
+  if (people.length) {
+    const hint = document.createElement("p");
+    hint.className = "score-hint";
+    hint.textContent = "Escala 1–10 · admite decimales (ej. 9.5) · dejar vacío borra la nota";
+    scoreWrap.appendChild(hint);
+  }
 
   scoreWrap.querySelectorAll("input[type=number]").forEach((input) => {
     input.addEventListener("change", async () => {
@@ -325,13 +335,19 @@ function openModal(ep, mode) {
             { method: "DELETE" }
           );
         } else {
+          const value = parseFloat(input.value);
+          if (!Number.isFinite(value) || value < 1 || value > 10) {
+            alert("La puntuación tiene que ser un número entre 1 y 10 (admite decimales, ej. 9.5).");
+            input.value = ep.scores && ep.scores[personId] != null ? ep.scores[personId] : "";
+            return;
+          }
           await api("/api/scores", {
             method: "POST",
             body: JSON.stringify({
               person_id: personId,
               season: ep.season,
               episode_number: ep.number,
-              value: parseInt(input.value, 10),
+              value: Math.round(value * 10) / 10,
             }),
           });
         }

@@ -444,6 +444,12 @@ select {
   font-size: 1rem;
 }
 
+.score-hint {
+  margin: -4px 0 12px;
+  font-size: 0.72rem;
+  color: #9aa0b4;
+}
+
 .modal-actions {
   display: flex;
   gap: 8px;
